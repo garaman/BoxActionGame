@@ -12,6 +12,7 @@ public class Player : MonoBehaviour
     [SerializeField] GameObject[] weapons;
     [SerializeField] bool[] hasWeapon;
     [SerializeField] GameObject[] grenades;
+    [SerializeField] GameObject granadePrefab;
     public int hasGrenades = 0;
 
     public int ammo = 0;
@@ -29,6 +30,7 @@ public class Player : MonoBehaviour
     bool rDown;
     bool jDown;
     bool fDown;
+    bool gDown;
     bool reDown;
     bool iDown;
     bool sDown1;
@@ -42,23 +44,29 @@ public class Player : MonoBehaviour
     bool isReload = false;
     bool isFireReady = true;
     bool isBorder = false;
+    bool isDamage = false;
 
     Vector3 moveVec;
     Vector3 dodgeVec;
 
     Animator animator;
     new Rigidbody rigidbody;
-
+    MeshRenderer[] meshs;
+    
+    
     GameObject nearObject;
     Weapon equipWeapon;
     int equipWeaponIndex = -1;
     float fireDelay = 0;
 
 
+
+
     void Awake()
     {
         animator = GetComponentInChildren<Animator>();
         rigidbody = GetComponent<Rigidbody>();
+        meshs = GetComponentsInChildren<MeshRenderer>();
     }
         
     void Update()
@@ -68,6 +76,7 @@ public class Player : MonoBehaviour
         Turn();
         Jump();
         Attack();
+        Grenade();
         Reload();
         Dodge();
         Interaction();
@@ -81,6 +90,7 @@ public class Player : MonoBehaviour
         rDown = Input.GetButton("Run"); // left shift
         jDown = Input.GetButtonDown("Jump");
         fDown = Input.GetButton("Fire1");
+        gDown = Input.GetButtonDown("Fire2");
         reDown = Input.GetButtonDown("Reload");
         iDown = Input.GetButtonDown("Interaction");
         sDown1 = Input.GetButtonDown("Swap1");
@@ -152,6 +162,31 @@ public class Player : MonoBehaviour
         }
     }
 
+    void Grenade()
+    {
+        if (hasGrenades == 0) { return; }
+
+        if (gDown && !isReload && !isSwap)
+        {
+            Ray ray = followCamera.ScreenPointToRay(Input.mousePosition);
+            RaycastHit rayHit;
+            if (Physics.Raycast(ray, out rayHit, 100))
+            {
+                Vector3 nextVec = rayHit.point - transform.position;
+                nextVec.y = 10;
+                
+                GameObject grenadeInst = Instantiate(granadePrefab, transform.position, transform.rotation);
+                Rigidbody granadeRigid = grenadeInst.GetComponent<Rigidbody>();
+
+                granadeRigid.AddForce(nextVec, ForceMode.Impulse);
+                granadeRigid.AddTorque(Vector3.back * 10, ForceMode.Impulse);
+
+                hasGrenades--;
+                grenades[hasGrenades].SetActive(false);
+
+            }
+        }
+    }
     void Reload()
     {
         if (equipWeapon == null) { return; }
@@ -297,8 +332,35 @@ public class Player : MonoBehaviour
             }
             Destroy(other.gameObject);
         }
+        else if(other.tag == "EnemyBullet")
+        {            
+            if(!isDamage)
+            {
+                Bullet enemyBullet = other.GetComponent<Bullet>();
+                health -= enemyBullet.damage;
+                StartCoroutine(OnDamage());
+            }
+            
+        }
 
     }
+
+    IEnumerator OnDamage()
+    {
+        isDamage = true;
+
+        foreach (MeshRenderer mesh in meshs)
+        {
+            mesh.material.color = Color.yellow;
+        }
+        yield return new WaitForSeconds(1.0f);
+                
+        isDamage = false;
+        foreach (MeshRenderer mesh in meshs)
+        {
+            mesh.material.color = Color.white;
+        }
+    }   
 
 
     private void OnTriggerStay(Collider other)
