@@ -327,7 +327,7 @@ public class Player : MonoBehaviour
                 case Item.Type.Grenade:
                     grenades[hasGrenades].SetActive(true);
                     hasGrenades += item.value;
-                    if (hasGrenades > maxHasGrenades) { hasGrenades = maxHasGrenades; }
+                    if (hasGrenades >= maxHasGrenades) { hasGrenades = maxHasGrenades; }
                     break;
             }
             Destroy(other.gameObject);
@@ -338,6 +338,7 @@ public class Player : MonoBehaviour
             {
                 Bullet enemyBullet = other.GetComponent<Bullet>();
                 health -= enemyBullet.damage;
+                if(health <= 0) { health = 0; } 
                 StartCoroutine(OnDamage());
             }
 
