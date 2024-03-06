@@ -340,7 +340,12 @@ public class Player : MonoBehaviour
                 health -= enemyBullet.damage;
                 StartCoroutine(OnDamage());
             }
-            
+
+            if (other.GetComponent<Rigidbody>() != null)
+            {
+                Destroy(other.gameObject);
+            }
+
         }
 
     }
