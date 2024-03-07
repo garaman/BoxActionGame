@@ -10,15 +10,16 @@ public class Player : MonoBehaviour
     [SerializeField] Camera followCamera;
 
     [SerializeField] GameObject[] weapons;
-    [SerializeField] bool[] hasWeapon;
+    [SerializeField] public bool[] hasWeapon;
     [SerializeField] GameObject[] grenades;
     [SerializeField] GameObject granadePrefab;
     public int hasGrenades = 0;
 
     public int ammo = 0;
     public int coin = 0;
+    public int score = 0;
     public int health = 100;
-    
+
     public int maxAmmo = 999;
     public int maxCoin = 99999;
     public int maxHealth = 100;
@@ -36,7 +37,7 @@ public class Player : MonoBehaviour
     bool sDown1;
     bool sDown2;
     bool sDown3;
-    
+        
 
     bool isJump = false;
     bool isDodge = false;
@@ -45,6 +46,7 @@ public class Player : MonoBehaviour
     bool isFireReady = true;
     bool isBorder = false;
     bool isDamage = false;
+    bool isShop = false;
 
     Vector3 moveVec;
     Vector3 dodgeVec;
@@ -55,7 +57,7 @@ public class Player : MonoBehaviour
     
     
     GameObject nearObject;
-    Weapon equipWeapon;
+    public Weapon equipWeapon;
     int equipWeaponIndex = -1;
     float fireDelay = 0;
 
@@ -154,7 +156,7 @@ public class Player : MonoBehaviour
         fireDelay += Time.deltaTime;
         isFireReady = equipWeapon.rate < fireDelay;
 
-        if(fDown && isFireReady && !isDodge && !isSwap) 
+        if(fDown && isFireReady && !isDodge && !isSwap && !isShop) 
         {
             equipWeapon.Use();
             animator.SetTrigger(equipWeapon.type == Weapon.Type.Melee ? "doSwing" : "doShot");
@@ -277,6 +279,13 @@ public class Player : MonoBehaviour
 
                 Destroy(nearObject);
             }
+            else if (nearObject.tag == "Shop")
+            {
+                Shop shop = nearObject.GetComponent<Shop>();
+                shop.Enter(this);
+                isShop = true;
+            }
+
         }
     }
 
@@ -371,7 +380,7 @@ public class Player : MonoBehaviour
 
     private void OnTriggerStay(Collider other)
     {
-        if(other.tag == "Weapon")
+        if(other.tag == "Weapon" || other.tag == "Shop")
         {
             nearObject = other.gameObject;
         }
@@ -381,6 +390,13 @@ public class Player : MonoBehaviour
     {
         if(other.tag == "Weapon")
         {
+            nearObject = null;
+        }
+        else if( other.tag == "Shop")
+        {            
+            Shop shop = other.GetComponent<Shop>();
+            shop.Exit();
+            isShop = false;
             nearObject = null;
         }
     }
