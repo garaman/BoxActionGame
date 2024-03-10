@@ -13,6 +13,7 @@ public class Player : MonoBehaviour
     [SerializeField] public bool[] hasWeapon;
     [SerializeField] GameObject[] grenades;
     [SerializeField] GameObject granadePrefab;
+    [SerializeField] public GameManager gameManager;
     public int hasGrenades = 0;
 
     public int ammo = 0;
@@ -47,12 +48,13 @@ public class Player : MonoBehaviour
     bool isBorder = false;
     bool isDamage = false;
     bool isShop = false;
+    bool isDead = false;
 
     Vector3 moveVec;
     Vector3 dodgeVec;
 
     Animator animator;
-    new Rigidbody rigidbody;
+    Rigidbody rigid;
     MeshRenderer[] meshs;
     
     
@@ -67,7 +69,7 @@ public class Player : MonoBehaviour
     void Awake()
     {
         animator = GetComponentInChildren<Animator>();
-        rigidbody = GetComponent<Rigidbody>();
+        rigid = GetComponent<Rigidbody>();
         meshs = GetComponentsInChildren<MeshRenderer>();
     }
         
@@ -107,7 +109,7 @@ public class Player : MonoBehaviour
         moveVec = new Vector3(hAxis, 0, vAxis).normalized;
 
         if(isDodge) { moveVec = dodgeVec; }
-        if(isSwap || !isFireReady || isReload) { moveVec = Vector3.zero; }
+        if(isSwap || !isFireReady || isReload || isDead) { moveVec = Vector3.zero; }
         
         if(!isBorder)
         {
@@ -120,7 +122,7 @@ public class Player : MonoBehaviour
 
     void Turn()
     {
-        if(fDown)
+        if(fDown && !isDead)
         {
             Ray ray = followCamera.ScreenPointToRay(Input.mousePosition);
             RaycastHit rayHit;
@@ -140,9 +142,9 @@ public class Player : MonoBehaviour
 
     void Jump()
     {
-        if(jDown && !isJump && moveVec==Vector3.zero && !isDodge && !isSwap)
+        if(jDown && !isJump && moveVec==Vector3.zero && !isDodge && !isSwap && !isDead)
         {
-            rigidbody.AddForce(Vector3.up * 20 , ForceMode.Impulse);
+            rigid.AddForce(Vector3.up * 20 , ForceMode.Impulse);
             animator.SetBool("isJump", true);
             animator.SetTrigger("doJump");
             isJump = true;
@@ -168,7 +170,7 @@ public class Player : MonoBehaviour
     {
         if (hasGrenades == 0) { return; }
 
-        if (gDown && !isReload && !isSwap)
+        if (gDown && !isReload && !isSwap && !isDead)
         {
             Ray ray = followCamera.ScreenPointToRay(Input.mousePosition);
             RaycastHit rayHit;
@@ -291,7 +293,7 @@ public class Player : MonoBehaviour
 
     void FreezeRotation()
     {
-        rigidbody.angularVelocity = Vector3.zero;
+        rigid.angularVelocity = Vector3.zero;
     }
 
     void StopToWall()
@@ -347,8 +349,17 @@ public class Player : MonoBehaviour
             {
                 Bullet enemyBullet = other.GetComponent<Bullet>();
                 health -= enemyBullet.damage;
-                if(health <= 0) { health = 0; } 
-                StartCoroutine(OnDamage());
+                if(health <= 0) { health = 0; }
+
+                if (health <= 0 && !isDead)
+                {
+                    OnDie();
+                }
+                else
+                {
+                    StartCoroutine(OnDamage());
+                }
+                
             }
 
             if (other.GetComponent<Rigidbody>() != null)
@@ -363,7 +374,6 @@ public class Player : MonoBehaviour
     IEnumerator OnDamage()
     {
         isDamage = true;
-
         foreach (MeshRenderer mesh in meshs)
         {
             mesh.material.color = Color.yellow;
@@ -377,6 +387,14 @@ public class Player : MonoBehaviour
         }
     }   
 
+    void OnDie()
+    {
+        animator.SetTrigger("doDie");
+        isDead = true;
+        gameManager.GameOver();
+    }
+
+    
 
     private void OnTriggerStay(Collider other)
     {

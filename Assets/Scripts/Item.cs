@@ -16,12 +16,12 @@ public class Item : MonoBehaviour
     [SerializeField] public Type type;
     [SerializeField] public int value;
 
-    new Rigidbody rigidbody;
+    Rigidbody rigid;
     SphereCollider sphereCollider;
 
     private void Awake()
     {
-        rigidbody = GetComponent<Rigidbody>();
+        rigid = GetComponent<Rigidbody>();
         sphereCollider = GetComponent<SphereCollider>();
     }
 
@@ -34,7 +34,7 @@ public class Item : MonoBehaviour
     {
         if(collision.gameObject.tag == "Floor")
         {
-            rigidbody.isKinematic = true;
+            rigid.isKinematic = true;
             sphereCollider.enabled = false;
         }
     }

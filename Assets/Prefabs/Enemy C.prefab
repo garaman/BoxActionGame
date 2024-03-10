@@ -122,6 +122,11 @@ MonoBehaviour:
   target: {fileID: 0}
   meleeArea: {fileID: 0}
   bullet: {fileID: 3435024781876408396, guid: a6088d862e5774a40863515e02b59807, type: 3}
+  coins:
+  - {fileID: 7589607689108235796, guid: e04384d6e1363b545af4da1cc73f2de9, type: 3}
+  - {fileID: 8161760079907162791, guid: 2f5493dbb904aa64bb81c4dee372e558, type: 3}
+  - {fileID: 83680274349263610, guid: af8a69948e7c01b4a90444d6207ab743, type: 3}
+  score: 300
   maxHealth: 150
   curHealth: 150
 --- !u!1001 &4886445262309775258

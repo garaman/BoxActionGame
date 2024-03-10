@@ -8,11 +8,17 @@ public class Enemy : MonoBehaviour
     public enum Type { A,B,C,D };
 
     [SerializeField] Type type;
-    [SerializeField] protected Transform target;
+    [SerializeField] public GameManager Manager;
+    [SerializeField] public Transform target;
     [SerializeField] protected BoxCollider meleeArea;
     [SerializeField] protected GameObject bullet;
+    [SerializeField] protected GameObject[] coins;
+    public int score;
     public int maxHealth;
     public int curHealth;
+
+    
+
 
     bool isChase = false;
     bool isAttack = false;
@@ -222,8 +228,21 @@ public class Enemy : MonoBehaviour
             isDead = true;
             nav.enabled = false;
             animator.SetTrigger("doDie");
+            Player player = target.GetComponent<Player>();
+            player.score += score;
 
-            if(isGrenade)
+            int ranCoin = Random.Range(0, 3);
+            Instantiate(coins[ranCoin], transform.position, Quaternion.identity);
+            
+            switch (type)
+            {
+                case Type.A: Manager.enemyCntA--; break;
+                case Type.B: Manager.enemyCntB--; break;
+                case Type.C: Manager.enemyCntC--; break;
+                case Type.D: Manager.enemyCntD--; break;
+            }
+
+            if (isGrenade)
             {
                 reactVec += Vector3.up*3;
                 rigid.freezeRotation = false;
@@ -236,10 +255,7 @@ public class Enemy : MonoBehaviour
 
             rigid.AddForce(reactVec*5, ForceMode.Impulse);
 
-            if(type != Type.D)
-            {
-                Destroy(gameObject, 4f);
-            }            
+            Destroy(gameObject, 4f);
         }
     }
 
